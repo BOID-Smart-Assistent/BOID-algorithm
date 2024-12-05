@@ -55,7 +55,7 @@ public class BOIDGoalGenerator {
                             .toList();
 
                     boolean shouldBreak = false;
-
+                    // TODO: Add a message that checks which path the user wants to go to.
                     for (BOIDRule df : rules) {
                         if (state.isApplicable(df) && !state.hasBeenApplied(df)) {
                             BOIDSequence nextState = state.app(df);

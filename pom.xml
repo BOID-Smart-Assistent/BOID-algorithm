@@ -25,5 +25,15 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.16.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.7</version>
+        </dependency>
+        <dependency>
+            <groupId>nl.uu.boid</groupId>
+            <artifactId>boid-model-java</artifactId>
+            <version>0.0.24</version>
+        </dependency>
     </dependencies>
 </project>

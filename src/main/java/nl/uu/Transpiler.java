@@ -1,9 +1,10 @@
 package nl.uu;
 
-import nl.uu.components.BOIDReasoner;
 import nl.uu.components.BOIDRule;
-import nl.uu.components.BOIDTheory;
 import nl.uu.components.BOIDTypes;
+import nl.uu.model.boid.Rule;
+import nl.uu.model.boid.data.*;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.tweetyproject.logics.commons.syntax.Predicate;
 import org.tweetyproject.logics.fol.syntax.*;
@@ -40,9 +41,9 @@ public class Transpiler {
                 FolFormula a;
                 // Check if the prerequisite is a tautology
                 if (Objects.equals(predicates[0], "true")) {
-                   a = new Tautology();
+                    a = new Tautology();
                 } else {
-                   a = new FolAtom(new Predicate(predicates[0]));
+                    a = new FolAtom(new Predicate(predicates[0]));
                 }
 
                 FolAtom b = new FolAtom(new Predicate(bInput));
@@ -87,26 +88,102 @@ public class Transpiler {
                     }
                 }
             }
-        }  catch (ParseException | IOException e) {
+        } catch (ParseException | IOException e) {
             throw new RuntimeException(e);
         }
 
         return new ImmutablePair<>(rules, beliefSet);
     }
 
-    public Map<String, String> transpileExtension(ArrayList<BOIDRule> rules, Extension extension) {
-       Map<String, String> result = new HashMap<>();
+    public ImmutablePair<ArrayList<BOIDRule>, FolBeliefSet> readProtobuf(LlmOutput message) {
+        FolBeliefSet beliefSet = new FolBeliefSet();
 
-        for (var atom : extension) {
-           if (atom.toString().contains("timeslot")) {
-               for (BOIDRule rule : rules) {
-                   if (Objects.equals(rule.getConclusion().toString(), atom.toString())) {
-                       result.put(atom.toString(), rule.getPrerequisite().toString());
-                   }
-               }
-           }
-       }
+        BufferedReader bufferedReader;
+        ArrayList<BOIDRule> rules = new ArrayList<>();
 
-        return result;
+        Map<String, ArrayList<FolAtom>> periods = new HashMap<>();
+
+        Iterator<Rule> llmRules = message.getRulesList().iterator();
+
+        int i = 1;
+        while (llmRules.hasNext()) {
+            Rule rule = llmRules.next();
+            String head = rule.getHead().trim();
+            String complement = rule.getComplement().trim();
+            BOIDTypes boidType = BOIDTypes.BOID_TYPES_BELIEF;
+            FolFormula a;
+            // Check if the prerequisite is a tautology
+            if (Objects.equals(head, "true")) {
+                a = new Tautology();
+            } else {
+                a = new FolAtom(new Predicate(head));
+            }
+
+            FolAtom b = new FolAtom(new Predicate(complement));
+            // If the conclusion is a timeslot then add it to the map, then generate the material exclusivity later?
+            if (rule.getComplement().contains("timeslot")) {
+                String[] timeslot = complement.split("_");
+                String timeslotPeriod = timeslot[1];
+                // Create all the mutual exclusiveness
+                if (periods.containsKey(timeslotPeriod)) {
+                    periods.get(timeslotPeriod).add(b);
+                } else {
+                    periods.put(timeslotPeriod, new ArrayList<>(Arrays.asList(b)));
+                }
+            }
+
+            switch (rule.getRuleType()) {
+                case BELIEF -> {
+                    boidType = BOIDTypes.BOID_TYPES_BELIEF;
+                }
+                case OBLIGATION -> {
+                    boidType = BOIDTypes.BOID_TYPES_OBLIGATION;
+                }
+                case INTENTION -> {
+                    boidType = BOIDTypes.BOID_TYPES_INTENTION;
+                }
+                case DESIRE -> {
+                    boidType = BOIDTypes.BOID_TYPES_DESIRE;
+                }
+            }
+
+            rules.add(new BOIDRule(a, b, boidType, 1));
+
+            i++;
+        }
+
+        for (String key : periods.keySet()) {
+            ArrayList<FolAtom> slots = periods.get(key);
+            for (int k = 0; k < slots.size(); k++) {
+                for (int j = k + 1; j < slots.size(); j++) {
+                    FolAtom first = slots.get(k);
+                    FolAtom second = slots.get(j);
+
+                    beliefSet.add(new Negation(new Conjunction(first, second)));
+                }
+            }
+        }
+
+        return new ImmutablePair<>(rules, beliefSet);
+    }
+
+    public BoidOutput transpileExtension(ArrayList<BOIDRule> rules, Extension extension) {
+        BoidOutput.Builder builder = BoidOutput.newBuilder();
+        var iterator = extension.stream().iterator();
+
+        while (iterator.hasNext()) {
+            var goal = iterator.next();
+
+            if (goal instanceof FolAtom) {
+                String name = ((FolAtom) goal).getName();
+
+                if (name.contains("timeslot")) {
+                    // Get the ID of the presentation
+                    builder.addPresentations(Integer.parseInt(name.split("_")[2]));
+                }
+            }
+        }
+
+        return builder.build();
     }
 }
