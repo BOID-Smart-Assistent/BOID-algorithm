@@ -1,0 +1,12 @@
+services:
+  boid-algorithm:
+    image: azul/zulu-openjdk:17-latest # Use the appropriate Java version
+    container_name: boid-algorithm
+    working_dir: /app
+    volumes:
+      - ./out/artifacts/boid_algorithm_jar:/app  # Mount the local directory where your JAR file is stored
+    command: ["java", "-jar", "boid-algorithm.jar"]
+    environment:
+      - JAVA_OPTS=-Xmx512m -Xms256m  # Adjust Java options as needed
+    restart: unless-stopped
+

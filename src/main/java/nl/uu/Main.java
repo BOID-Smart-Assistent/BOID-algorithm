@@ -43,7 +43,7 @@ public class Main {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("identification", "boid-algorithm");
 
-        BOIDClient client = new BOIDClient(URI.create("ws://localhost:8081"), headers);
+        BOIDClient client = new BOIDClient(URI.create("ws://api:8081"), headers);
         client.connect();
     }
 }

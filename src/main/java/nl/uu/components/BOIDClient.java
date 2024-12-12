@@ -50,7 +50,7 @@ public class BOIDClient extends WebSocketClient {
             BOIDTheory theory = new BOIDTheory(transpilerResult.getRight(), transpilerResult.getLeft());
             BOIDReasoner reasoner = new BOIDReasoner();
             Extension extension = reasoner.getGoal(theory);
-            BoidOutput boidOutput = transpiler.transpileExtension(transpilerResult.getLeft(), extension);
+            BoidOutput boidOutput = transpiler.transpileExtension(transpilerResult.getLeft(), extension, message.getUserId());
 
             JSONObject response = new JSONObject();
             response.put("event", "schedule-result");

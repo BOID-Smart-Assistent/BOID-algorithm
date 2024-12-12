@@ -167,9 +167,10 @@ public class Transpiler {
         return new ImmutablePair<>(rules, beliefSet);
     }
 
-    public BoidOutput transpileExtension(ArrayList<BOIDRule> rules, Extension extension) {
+    public BoidOutput transpileExtension(ArrayList<BOIDRule> rules, Extension extension, int userId) {
         BoidOutput.Builder builder = BoidOutput.newBuilder();
         var iterator = extension.stream().iterator();
+        builder.setUserId(userId);
 
         while (iterator.hasNext()) {
             var goal = iterator.next();
