@@ -13,6 +13,10 @@ public class BOIDReasoner {
         return new BOIDGoalGenerator().getStrictGoal(theory);
     }
 
+    public Collection<Extension> getGoalsExperimental(BOIDTheory theory) {
+        return new BOIDGoalGenerator().getGoalsExperimental(theory);
+    }
+
     public Collection<Extension> getModels(BOIDTheory bbase) {
         return new BOIDProcessTree(bbase).getExtensions();
     }

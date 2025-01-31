@@ -36,6 +36,7 @@ public class Transpiler {
                 String aInput = predicates[0];
                 String ruleInput = predicates[1];
                 String bInput = predicates[2];
+                String priority = predicates[3];
 
                 BOIDTypes boidType;
                 FolFormula a;
@@ -71,7 +72,29 @@ public class Transpiler {
                     throw new ParseException("Could not find BOID rule type at line", i);
                 }
 
-                rules.add(new BOIDRule(a, b, boidType, i));
+//                int priority = i;
+
+//                if (bInput.equals("transformers") || bInput.equals("compilers")) {
+//                    priority = 3;
+//                } else if (bInput.contains("timeslot")) {
+//                    priority = 6;
+//                } else if (bInput.equals("machine_learning")) {
+//                    priority = 5;
+//                } else if (bInput.equals("large_language_models")) {
+//                    priority = 4;
+//                } else if (bInput.equals("knowledge_representation")) {
+//                    priority = 2;
+//                } else if (bInput.equals("web_technology")) {
+//                    priority = 1;
+//                }
+
+//                if (bInput.contains("timeslot")) {
+//                    priority = 9;
+//                } else {
+//                    priority = i - 9;
+//                }
+//
+                rules.add(new BOIDRule(a, b, boidType, Integer.parseInt(priority)));
 
                 line = bufferedReader.readLine();
                 i++;
